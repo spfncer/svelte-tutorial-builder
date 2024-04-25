@@ -1,16 +1,37 @@
-import { SvelteComponent, type ComponentType } from "svelte";
 import { writable } from "svelte/store";
 
-function createStore(){
+export type TutorialItem = {
+    description: string;
+    component: HTMLElement;
+    clickToAdvance: boolean;
+}
 
-    const data = new Map<String, HTMLElement>();
-    const {subscribe, set, update} = writable(data);
+function createStore() {
+
+    const data = new Map<number, TutorialItem>();
+    const { subscribe, set, update } = writable(data);
 
     return {
         subscribe,
-        add: (key:string, item: HTMLElement) => {
+        addClickable: (key: number, item: HTMLElement, text: string) => {
+            const newItem: TutorialItem = {
+                description: text,
+                component: item,
+                clickToAdvance: true
+            }
             update(dataMap => {
-                dataMap.set(key, item);
+                dataMap.set(key, newItem);
+                return dataMap;
+            })
+        },
+        addNonClickable: (key: number, item: HTMLElement, text: string) => {
+            const newItem: TutorialItem = {
+                description: text,
+                component: item,
+                clickToAdvance: false
+            }
+            update(dataMap => {
+                dataMap.set(key, newItem);
                 return dataMap;
             })
         }
