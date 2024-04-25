@@ -95,10 +95,10 @@
 <div class={showCurtain ? 'explanation shown' : 'explanation'} bind:this={explanation}>
 	{item?.description}
 	<div class="controls">
+		<button class="control" on:click={showPrevious}>Previous</button>
 		{#if item?.clickToAdvance}
-			<p>Click the button to continue.</p>
+			<p class="click2">Click the button to continue.</p>
 		{:else}
-			<button class="control" on:click={showPrevious}>Previous</button>
 			<button class="control" on:click={showNext}>Next</button>
 		{/if}
 	</div>
@@ -132,5 +132,23 @@
 	}
 	.control {
 		margin: 0 5px;
+		padding: 3px;
+		background-color: transparent;
+		outline: 1px solid #000;
+		border: none;
+		transition: outline 0.4s ease;
+	}
+	.control:hover,
+	.control:focus {
+		outline: 1px solid blue;
+	}
+
+	.control:active {
+		outline: 2px solid blue;
+	}
+	.click2 {
+		margin: 0;
+		padding: 5px 0 0 0;
+		font-size: 0.8em;
 	}
 </style>
