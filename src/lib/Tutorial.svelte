@@ -1,6 +1,6 @@
 <script lang="ts">
-	import ComputeLocation from './ComputeLocation.ts';
-	import { TutorialStore, type TutorialItem } from './TutorialStore.ts';
+	import ComputeLocation from './ComputeLocation';
+	import { TutorialStore, type TutorialItem } from './TutorialStore';
 	import { onMount, tick } from 'svelte';
 
 	export let show: number = 0;
