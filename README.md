@@ -41,7 +41,7 @@ The above creates a Tutorial but does not start until user calls.`TutorialCompon
 ```
 Creates a Tutorial and immediately highlights #13. autoStart has no effect since the show prop was specified.
 
-## Developing
+## Developing & Contributing
 
 Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
@@ -53,6 +53,8 @@ npm run dev -- --open
 ```
 
 Everything inside `src/lib` is part of the library, everything inside `src/routes` can be used as a showcase or preview app.
+
+Suggested changes to this repo should be suggested as Pull Requests on GitHub. I look forward to seeing your contributions!
 
 ## Building
 
