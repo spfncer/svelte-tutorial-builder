@@ -19,7 +19,7 @@
 	});
 </script>
 
-<Tutorial bind:this={tutorialComponent}></Tutorial>
+<Tutorial autoStart={false} bind:this={tutorialComponent}></Tutorial>
 <h1 bind:this={elem1}>Welcome to your library project</h1>
 <p bind:this={elem2}>
 	Create your package using @sveltejs/package and preview/showcase your work with SvelteKit

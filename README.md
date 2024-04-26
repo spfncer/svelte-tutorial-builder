@@ -1,4 +1,4 @@
-# svelte-tutorial
+# svelte-tutorial-builder
 
 A library for Svelte to simplify creating a simple linear in-app tutorial for new users.
 
@@ -21,6 +21,14 @@ To insert items into TutorialStore:
 * By default, the Tutorial Component will immediately start from item #1 in the TutorialStore when it mounts. You can pass the **autoStart** prop to change this behavior.
 * By using **bind:this** on the tutorial component, you can call **startTutorial()** on the Tutorial component at some arbitrary time, such as when the user clicks a button.
 * You can pass the **show** prop to the component to manually highlight the Element with that ID
+
+### Props
+* `show`: Optional. Takes an ID of an item in TutorialStore, and immediately puts the tutorial to that item. Provides no way for user to advance, so ideally this will use a binding to provide another way to advance.
+* `curtainZIndex`: Optional, default 50. Sets the Z-Index for the backdrop used to dim the application.
+* `autoStart`: Optional, default true. If true, the tutorial will begin as soon as the Tutorial component mounts. If false, use the exported function `startTutorial()` to start at an arbitrary time.
+* `buttonClasses`: Optional. Pass a string containing (global) CSS classes to apply to the buttons that appear on the floating explanations panel.
+* `boxClasses`: Optional. Pass a string containing (global) CSS classes to apply to the floating explanations panel.
+* `clickableMessage`: Optional, default 'Click it to continue.' Takes a string to display instead of the Next button for any Clickable elements.
 
 ### Full Usage with Props
 ```
