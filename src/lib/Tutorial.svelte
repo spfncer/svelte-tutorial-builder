@@ -2,13 +2,15 @@
 	import ComputeLocation from './ComputeLocation.ts';
 	import { TutorialStore, type TutorialItem } from './TutorialStore.ts';
 	import { browser } from '$app/environment';
-	import { tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 
 	export let show: number = 0;
 	export let curtainZIndex: number = 50;
+	export let autoStart: boolean = true;
 
 	let current = 0;
 	let explanation: HTMLDivElement;
+	let aboutToClose = false;
 
 	let item: TutorialItem | undefined;
 
@@ -22,6 +24,8 @@
 		}
 	}
 
+	if (autoStart) onMount(showNext); //start the tutorial automatically
+
 	export function startTutorial() {
 		showNext();
 	}
@@ -31,12 +35,9 @@
 		current++;
 		await tick(); //wait for the DOM to update in case the next item is not yet mounted
 		item = $TutorialStore.get(current);
-		while (!item) {
-			current++;
-			if (current > $TutorialStore.size) {
-				current = 0;
-				return;
-			}
+		if (!item) {
+			current = 0;
+			return;
 		}
 		addItemFocus(item.component);
 		if (item.clickToAdvance) {
@@ -86,22 +87,56 @@
 		}
 	}
 	if (browser) window.addEventListener('resize', moveBox);
+
+	function handleBackDropClick() {
+		if (showCurtain && !aboutToClose) {
+			aboutToClose = true;
+			explanation.style.top = window.innerHeight / 2 - explanation.offsetHeight / 2 + 'px';
+			explanation.style.left = window.innerWidth / 2 - explanation.offsetWidth / 2 + 'px';
+		}
+	}
+	function handleCancelClose() {
+		aboutToClose = false;
+		moveBox();
+	}
 </script>
 
 {#if showCurtain}
-	<div class="curtain" style={'z-index:' + curtainZIndex}></div>
+	<!-- svelte-ignore a11y-no-static-element-interactions -->
+	<!-- svelte-ignore a11y-click-events-have-key-events -->
+	<div
+		class="curtain"
+		style={'z-index:' + curtainZIndex}
+		on:click|stopPropagation={handleBackDropClick}
+	></div>
 {/if}
 
 <div class={showCurtain ? 'explanation shown' : 'explanation'} bind:this={explanation}>
-	{item?.description}
-	<div class="controls">
-		<button class="control" on:click={showPrevious}>Previous</button>
-		{#if item?.clickToAdvance}
-			<p class="click2">Click the button to continue.</p>
-		{:else}
-			<button class="control" on:click={showNext}>Next</button>
-		{/if}
-	</div>
+	{#if !aboutToClose}
+		<!-- Normal behavior for floating explanations box -->
+		{item?.description}
+		<div class="controls">
+			<button class="control" on:click={showPrevious}>Previous</button>
+			{#if item?.clickToAdvance}
+				<p class="click2">Click it to continue.</p>
+			{:else}
+				<button class="control" on:click={showNext}>Next</button>
+			{/if}
+		</div>
+	{:else}
+		<!-- User clicked backdrop, prompt if they want to close -->
+		Do you want to exit the tutorial?
+		<div class="controls">
+			<button class="control" on:click={handleCancelClose}>No</button>
+			<button
+				class="control"
+				on:click={() => {
+					aboutToClose = false;
+					current = 0;
+				}}>Yes</button
+			>
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -121,6 +156,9 @@
 		background-color: #fff;
 		border-radius: 4px;
 		padding: 10px;
+		transition:
+			top 0.4s ease,
+			left 0.4s ease;
 	}
 	.explanation.shown {
 		display: block;
@@ -129,6 +167,15 @@
 		margin-top: 10px;
 		display: flex;
 		justify-content: center;
+		width: 100%;
+		&.screenTop {
+			position: absolute;
+			top: 5dvh;
+		}
+		&.screenBottom {
+			position: absolute;
+			bottom: 5dvh;
+		}
 	}
 	.control {
 		margin: 0 5px;
@@ -137,6 +184,7 @@
 		outline: 1px solid #000;
 		border: none;
 		transition: outline 0.4s ease;
+		z-index: inherit;
 	}
 	.control:hover,
 	.control:focus {
