@@ -1,20 +1,18 @@
-# create-svelte
+# svelte-tutorial
 
-Everything you need to build a Svelte library, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+A library for Svelte to simplify creating a simple linear in-app tutorial for new users.
 
-Read more about creating a library [in the docs](https://kit.svelte.dev/docs/packaging).
+## Loading HTML Elements into TutorialStore
+1. Inside your app's components, [create bindings to individual HTML elements](https://learn.svelte.dev/tutorial/bind-this) you want to call attention to in the tutorial.
+2. Import the TutorialStore in each component containing HTML elements to reference.
+3. Consider how you want users to interact with each component. If it's something they'll click (like a button), you can use TutorialStore.addClickable() to add it to the store. With this method, users will have to click on the item to advance the tutorial. Otherwise, use TutorialStore.addNonClickable().
+4. When the component mounts, add your HTMLElements to the store using the chosen methods. Note that you can mix-and-match, just ensure your IDs are consecutive, positive integers starting from 1.
+5. Import and add the Tutorial component to the top-level component for the app/page you want to show tutorials on.
 
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+## Using the Tutorial Component
+* By default, the Tutorial Component will immediately start from item #1 in the TutorialStore when it mounts. You can pass the **autoStart** prop to change this behavior.
+* By using **bind:this** on the tutorial component, you can call **startTutorial()** on the Tutorial component at some arbitrary time, such as when the user clicks a button.
+* You can pass the **show** prop to the component to manually highlight the Element with that ID
 
 ## Developing
 
@@ -27,7 +25,7 @@ npm run dev
 npm run dev -- --open
 ```
 
-Everything inside `src/lib` is part of your library, everything inside `src/routes` can be used as a showcase or preview app.
+Everything inside `src/lib` is part of the library, everything inside `src/routes` can be used as a showcase or preview app.
 
 ## Building
 
@@ -44,15 +42,3 @@ npm run build
 ```
 
 You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
-
-## Publishing
-
-Go into the `package.json` and give your package the desired name through the `"name"` option. Also consider adding a `"license"` field and point it to a `LICENSE` file which you can create from a template (one popular option is the [MIT license](https://opensource.org/license/mit/)).
-
-To publish your library to [npm](https://www.npmjs.com):
-
-```bash
-npm publish
-```
