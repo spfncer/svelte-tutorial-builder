@@ -7,6 +7,8 @@
 	export let show: number = 0;
 	export let curtainZIndex: number = 50;
 	export let autoStart: boolean = true;
+	export let buttonClasses: string = '';
+	export let boxClasses: string = '';
 
 	let current = 0;
 	let explanation: HTMLDivElement;
@@ -111,7 +113,11 @@
 	></div>
 {/if}
 
-<div class={showCurtain ? 'explanation shown' : 'explanation'} bind:this={explanation}>
+<!-- Below is the floating explanations box! -->
+<div
+	class={(showCurtain ? 'explanation show ' : 'explanation ') + boxClasses}
+	bind:this={explanation}
+>
 	{#if !aboutToClose}
 		<!-- Normal behavior for floating explanations box -->
 		{item?.description}
@@ -120,16 +126,16 @@
 			{#if item?.clickToAdvance}
 				<p class="click2">Click it to continue.</p>
 			{:else}
-				<button class="control" on:click={showNext}>Next</button>
+				<button class={'control ' + buttonClasses} on:click={showNext}>Next</button>
 			{/if}
 		</div>
 	{:else}
 		<!-- User clicked backdrop, prompt if they want to close -->
 		Do you want to exit the tutorial?
 		<div class="controls">
-			<button class="control" on:click={handleCancelClose}>No</button>
+			<button class={'control ' + buttonClasses} on:click={handleCancelClose}>No</button>
 			<button
-				class="control"
+				class={'control ' + buttonClasses}
 				on:click={() => {
 					aboutToClose = false;
 					current = 0;
