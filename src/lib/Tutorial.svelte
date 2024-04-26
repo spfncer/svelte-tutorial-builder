@@ -9,6 +9,7 @@
 	export let autoStart: boolean = true;
 	export let buttonClasses: string = '';
 	export let boxClasses: string = '';
+	export let clickableMessage: string = 'Click it to continue.';
 
 	let current = 0;
 	let explanation: HTMLDivElement;
@@ -124,7 +125,7 @@
 		<div class="controls">
 			<button class="control" on:click={showPrevious}>Previous</button>
 			{#if item?.clickToAdvance}
-				<p class="click2">Click it to continue.</p>
+				<p class="click2">{clickableMessage}</p>
 			{:else}
 				<button class={'control ' + buttonClasses} on:click={showNext}>Next</button>
 			{/if}
@@ -166,7 +167,7 @@
 			top 0.4s ease,
 			left 0.4s ease;
 	}
-	.explanation.shown {
+	.explanation.show {
 		display: block;
 	}
 	.controls {
