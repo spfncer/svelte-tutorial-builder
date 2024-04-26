@@ -1,7 +1,6 @@
 <script lang="ts">
 	import ComputeLocation from './ComputeLocation.ts';
 	import { TutorialStore, type TutorialItem } from './TutorialStore.ts';
-	import { browser } from '$app/environment';
 	import { onMount, tick } from 'svelte';
 
 	export let show: number = 0;
@@ -14,6 +13,7 @@
 	let current = 0;
 	let explanation: HTMLDivElement;
 	let aboutToClose = false;
+	let browser = false;
 
 	let item: TutorialItem | undefined;
 
@@ -27,7 +27,17 @@
 		}
 	}
 
-	if (autoStart) onMount(showNext); //start the tutorial automatically
+	onMount(() => {
+		if (autoStart) {
+			//start tutorial automatically
+			showNext();
+		}
+
+		//check if the browser is available
+		browser = typeof window !== 'undefined';
+		console.log('browser', browser);
+		//end onMount
+	});
 
 	export function startTutorial() {
 		showNext();
