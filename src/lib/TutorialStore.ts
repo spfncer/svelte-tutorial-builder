@@ -13,6 +13,12 @@ function createStore() {
 
     return {
         subscribe,
+        /**
+         * Add an item to the in-app tutorial that the user should click on to advance the tutorial
+         * @param key {number} A positive, non-zero integer that uniquely identifies the item in the order it should appear. Should be consecutive.
+         * @param item {HTMLElement} The element to highlight
+         * @param text {string} The explanatory text to display in the tutorial
+         */
         addClickable: (key: number, item: HTMLElement, text: string) => {
             const newItem: TutorialItem = {
                 description: text,
@@ -24,6 +30,12 @@ function createStore() {
                 return dataMap;
             })
         },
+        /**
+         * Add an item to the in-app tutorial that the user should not click on to advance the tutorial. Instead there will be a "Next" button.
+         * @param key {number} A positive, non-zero integer that uniquely identifies the item in the order it should appear. Should be consecutive.
+         * @param item {HTMLElement} The element to highlight
+         * @param text {string} The explanatory text to display in the tutorial
+         */
         addNonClickable: (key: number, item: HTMLElement, text: string) => {
             const newItem: TutorialItem = {
                 description: text,
@@ -34,6 +46,15 @@ function createStore() {
                 dataMap.set(key, newItem);
                 return dataMap;
             })
+        },
+        remove: (key: number) => {
+            update(dataMap => {
+                dataMap.delete(key);
+                return dataMap;
+            })
+        },
+        clear: () => {
+            set(new Map<number, TutorialItem>());
         }
     }
 }
