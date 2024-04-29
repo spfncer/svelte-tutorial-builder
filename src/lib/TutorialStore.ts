@@ -58,6 +58,12 @@ function createStore() {
                 return dataMap;
             })
         },
+        /**
+         * Add a pause to the in-app tutorial to allow the user to test out some functionality. Tutorial will continue when you call the UnpauseTutorial() function in your component's code.
+         * @param key {number} A positive, non-zero integer that uniquely identifies the item in the order it should appear. Should be consecutive.
+         * @param text {string} The explanatory text to display right before the pause
+         * @param prePauseTask {()=>void} A function to run right before letting the user explore. This should set whatever condition your're waiting for to be false, so you can advance once the user makes it true.
+         */
         addPause: (key:number, text: string, prePauseTask:()=>void) => {
             const newItem: TutorialItem = {
                 description: text,
@@ -71,6 +77,12 @@ function createStore() {
                 return dataMap;
             })
         },
+        /**
+         * Add a pause to the in-app tutorial to allow the user to test out some functionality. Tutorial will continue when you call the UnpauseTutorial() function in your component's code.
+         * This function does not take in a pre-pause task, so only use this one if you're certain the condition you're checking for will always start out as false.
+         * @param key {number} A positive, non-zero integer that uniquely identifies the item in the order it should appear. Should be consecutive.
+         * @param text {string} The explanatory text to display right before the pause
+         */
         addPauseWithoutSetup: (key:number, text: string) => {
             const newItem: TutorialItem = {
                 description: text,

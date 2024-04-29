@@ -39,7 +39,7 @@
 				item.component.addEventListener(
 					'click',
 					() => {
-						showNext(false);
+						showNext();
 					},
 					{ once: true }
 				);
@@ -50,22 +50,21 @@
 	onMount(() => {
 		if (autoStart) {
 			//start tutorial automatically
-			showNext(false);
+			showNext();
 		}
 
 		//check if the browser is available
 		browser = typeof window !== 'undefined';
-		console.log('browser', browser);
 		//end onMount
 	});
 
 	export function startTutorial() {
-		showNext(false);
+		showNext();
 	}
 
-	async function showNext(bypass: boolean) {
+	async function showNext() {
 		removeItemFocus();
-		if (current == 0 || item?.component || bypass) {
+		if (current == 0 || item?.component) {
 			//the current thing open is an HTML element, just advance
 			current++;
 			await tick(); //wait for the DOM to update in case the next item is not yet mounted
@@ -81,7 +80,7 @@
 					item.component.addEventListener(
 						'click',
 						() => {
-							showNext(false);
+							showNext();
 						},
 						{ once: true }
 					);
@@ -117,9 +116,7 @@
 		if (item.clickToAdvance) {
 			item.component.addEventListener(
 				'click',
-				() => {
-					showNext(false);
-				},
+				showNext,
 				{ once: true }
 			);
 		}
@@ -195,9 +192,7 @@
 			{:else}
 				<button
 					class={'control ' + buttonClasses}
-					on:click={() => {
-						showNext(false);
-					}}>Next</button
+					on:click={showNext}>Next</button
 				>
 			{/if}
 		</div>
