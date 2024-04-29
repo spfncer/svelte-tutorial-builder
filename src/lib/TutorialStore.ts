@@ -6,6 +6,11 @@ export type TutorialItem = {
     component: HTMLElement | undefined;
     clickToAdvance: boolean;
     pause: boolean;
+    pauseTask: (()=>void);
+}
+
+function doNothing(){
+    return;
 }
 
 function createStore() {
@@ -27,6 +32,7 @@ function createStore() {
                 component: item,
                 clickToAdvance: true,
                 pause: false,
+                pauseTask: doNothing,
             }
             update(dataMap => {
                 dataMap.set(key, newItem);
@@ -45,18 +51,33 @@ function createStore() {
                 component: item,
                 clickToAdvance: false,
                 pause: false,
+                pauseTask: doNothing,
             }
             update(dataMap => {
                 dataMap.set(key, newItem);
                 return dataMap;
             })
         },
-        addPause: (key:number, text: string) => {
+        addPause: (key:number, text: string, prePauseTask:()=>void) => {
             const newItem: TutorialItem = {
                 description: text,
                 component: undefined,
                 clickToAdvance: false,
-                pause: false,
+                pause: true,
+                pauseTask: prePauseTask,
+            }
+            update(dataMap => {
+                dataMap.set(key, newItem);
+                return dataMap;
+            })
+        },
+        addPauseWithoutSetup: (key:number, text: string) => {
+            const newItem: TutorialItem = {
+                description: text,
+                component: undefined,
+                clickToAdvance: false,
+                pause: true,
+                pauseTask: doNothing,
             }
             update(dataMap => {
                 dataMap.set(key, newItem);

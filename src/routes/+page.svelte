@@ -19,12 +19,16 @@
 		TutorialStore.addNonClickable(1, elem1, 'This is a box');
 		TutorialStore.addNonClickable(5, elem2, 'This is a box 2');
 		TutorialStore.addClickable(3, elem3, 'This is a box 3');
-		TutorialStore.addPause(2, "To continue the tutorial, increase the counter value to 5!");
+		TutorialStore.addPause(2, "To continue the tutorial, increase the counter value to 5!", prePause);
 	});
 
 	$:{
 		if(bound > 4)
 			UnpauseTutorial();
+	}
+
+	function prePause(){
+		bound = 0;
 	}
 
 </script>

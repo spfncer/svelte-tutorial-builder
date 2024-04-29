@@ -21,9 +21,6 @@
 
 	$: showCurtain = show > 0 || current > 0;
 
-	$:console.log("Current", current);
-	$:console.log("Suspended", suspended);
-
 	$: if (show > 0) {
 		//logic for manually showing an item
 		item = $TutorialStore.get(show);
@@ -93,12 +90,13 @@
 				//new item is a pause explanation
 				moveBoxCenter();
 			}
-		} else {
+		} else if (item?.pause) {
 			//the current thing open is an explanation for a pause, so now pause
 			suspended = current;
 			current = 0;
 			//setup monitoring for when condition is true
 			Paused.pause();
+			item?.pauseTask();
 		}
 	}
 
@@ -107,8 +105,9 @@
 		current--;
 		await tick(); //wait for the DOM to update in case the next item is not yet mounted
 		item = $TutorialStore.get(current);
-		while (!item) {
+		while (!item || !item?.component) {
 			current--;
+			item = $TutorialStore.get(current);
 			if (current < 1) {
 				current = 0;
 				return;
