@@ -1,9 +1,11 @@
 import { writable } from "svelte/store";
 
+
 export type TutorialItem = {
     description: string;
-    component: HTMLElement;
+    component: HTMLElement | undefined;
     clickToAdvance: boolean;
+    pause: boolean;
 }
 
 function createStore() {
@@ -23,7 +25,8 @@ function createStore() {
             const newItem: TutorialItem = {
                 description: text,
                 component: item,
-                clickToAdvance: true
+                clickToAdvance: true,
+                pause: false,
             }
             update(dataMap => {
                 dataMap.set(key, newItem);
@@ -40,7 +43,20 @@ function createStore() {
             const newItem: TutorialItem = {
                 description: text,
                 component: item,
-                clickToAdvance: false
+                clickToAdvance: false,
+                pause: false,
+            }
+            update(dataMap => {
+                dataMap.set(key, newItem);
+                return dataMap;
+            })
+        },
+        addPause: (key:number, text: string) => {
+            const newItem: TutorialItem = {
+                description: text,
+                component: undefined,
+                clickToAdvance: false,
+                pause: false,
             }
             update(dataMap => {
                 dataMap.set(key, newItem);

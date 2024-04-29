@@ -3,6 +3,7 @@
 	import { TutorialStore } from '../lib/TutorialStore.ts';
 	import Tutorial from '$lib/Tutorial.svelte';
 	import TestComp from './TestComp.svelte';
+	import { UnpauseTutorial } from '$lib';
 
 	let elem1: HTMLElement;
 	let elem2: HTMLElement;
@@ -10,13 +11,22 @@
 
 	let show4 = false;
 
+	let bound: number = 0;
+
 	let tutorialComponent: Tutorial;
 
 	onMount(() => {
 		TutorialStore.addNonClickable(1, elem1, 'This is a box');
-		TutorialStore.addNonClickable(2, elem2, 'This is a box 2');
+		TutorialStore.addNonClickable(5, elem2, 'This is a box 2');
 		TutorialStore.addClickable(3, elem3, 'This is a box 3');
+		TutorialStore.addPause(2, "To continue the tutorial, increase the counter value to 5!");
 	});
+
+	$:{
+		if(bound > 4)
+			UnpauseTutorial();
+	}
+
 </script>
 
 <Tutorial autoStart={false} bind:this={tutorialComponent}></Tutorial>
@@ -37,6 +47,8 @@
 {#if show4}
 	<TestComp></TestComp>
 {/if}
+
+<input type="number" bind:value={bound}>
 
 <button on:click={() => tutorialComponent.startTutorial()}>Start tutorial</button>
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ComputeLocation from './ComputeLocation';
+	import { Paused } from './Paused.ts';
 	import { TutorialStore, type TutorialItem } from './TutorialStore';
 	import { onMount, tick } from 'svelte';
 
@@ -11,6 +12,7 @@
 	export let clickableMessage: string = 'Click it to continue.';
 
 	let current = 0;
+	let suspended = 0;
 	let explanation: HTMLDivElement;
 	let aboutToClose = false;
 	let browser = false;
@@ -19,18 +21,39 @@
 
 	$: showCurtain = show > 0 || current > 0;
 
+	$:console.log("Current", current);
+	$:console.log("Suspended", suspended);
+
 	$: if (show > 0) {
 		//logic for manually showing an item
 		item = $TutorialStore.get(show);
-		if (item) {
+		if (item?.component) {
 			addItemFocus(item.component);
+		}
+	}
+
+	$: if (!$Paused && suspended > 0) {
+		current = suspended + 1;
+		suspended = 0;
+		item = $TutorialStore.get(current);
+		if (item && item.component) {
+			addItemFocus(item.component);
+			if (item.clickToAdvance) {
+				item.component.addEventListener(
+					'click',
+					() => {
+						showNext(false);
+					},
+					{ once: true }
+				);
+			}
 		}
 	}
 
 	onMount(() => {
 		if (autoStart) {
 			//start tutorial automatically
-			showNext();
+			showNext(false);
 		}
 
 		//check if the browser is available
@@ -40,21 +63,42 @@
 	});
 
 	export function startTutorial() {
-		showNext();
+		showNext(false);
 	}
 
-	async function showNext() {
+	async function showNext(bypass: boolean) {
 		removeItemFocus();
-		current++;
-		await tick(); //wait for the DOM to update in case the next item is not yet mounted
-		item = $TutorialStore.get(current);
-		if (!item) {
+		if (current == 0 || item?.component || bypass) {
+			//the current thing open is an HTML element, just advance
+			current++;
+			await tick(); //wait for the DOM to update in case the next item is not yet mounted
+			item = $TutorialStore.get(current);
+			if (!item) {
+				current = 0;
+				return;
+			}
+			if (item.component) {
+				//new item is another HTML element
+				addItemFocus(item.component);
+				if (item.clickToAdvance) {
+					item.component.addEventListener(
+						'click',
+						() => {
+							showNext(false);
+						},
+						{ once: true }
+					);
+				}
+			} else {
+				//new item is a pause explanation
+				moveBoxCenter();
+			}
+		} else {
+			//the current thing open is an explanation for a pause, so now pause
+			suspended = current;
 			current = 0;
-			return;
-		}
-		addItemFocus(item.component);
-		if (item.clickToAdvance) {
-			item.component.addEventListener('click', showNext, { once: true });
+			//setup monitoring for when condition is true
+			Paused.pause();
 		}
 	}
 
@@ -72,7 +116,13 @@
 		}
 		addItemFocus(item.component);
 		if (item.clickToAdvance) {
-			item.component.addEventListener('click', showNext, { once: true });
+			item.component.addEventListener(
+				'click',
+				() => {
+					showNext(false);
+				},
+				{ once: true }
+			);
 		}
 	}
 
@@ -88,12 +138,14 @@
 	}
 
 	function removeItemFocus() {
-		item?.component.style.removeProperty('z-index');
-		item?.component.style.removeProperty('position');
+		if (typeof item?.component == 'object') {
+			item?.component.style.removeProperty('z-index');
+			item?.component.style.removeProperty('position');
+		}
 	}
 
 	function moveBox() {
-		if (item) {
+		if (item && typeof item.component == 'object') {
 			let positions = ComputeLocation(item.component, explanation);
 			explanation.style.left = positions.x + 'px';
 			explanation.style.top = positions.y + 'px';
@@ -104,10 +156,15 @@
 	function handleBackDropClick() {
 		if (showCurtain && !aboutToClose) {
 			aboutToClose = true;
-			explanation.style.top = window.innerHeight / 2 - explanation.offsetHeight / 2 + 'px';
-			explanation.style.left = window.innerWidth / 2 - explanation.offsetWidth / 2 + 'px';
+			moveBoxCenter();
 		}
 	}
+
+	function moveBoxCenter() {
+		explanation.style.top = window.innerHeight / 2 - explanation.offsetHeight / 2 + 'px';
+		explanation.style.left = window.innerWidth / 2 - explanation.offsetWidth / 2 + 'px';
+	}
+
 	function handleCancelClose() {
 		aboutToClose = false;
 		moveBox();
@@ -137,7 +194,12 @@
 			{#if item?.clickToAdvance}
 				<p class="click2">{clickableMessage}</p>
 			{:else}
-				<button class={'control ' + buttonClasses} on:click={showNext}>Next</button>
+				<button
+					class={'control ' + buttonClasses}
+					on:click={() => {
+						showNext(false);
+					}}>Next</button
+				>
 			{/if}
 		</div>
 	{:else}
