@@ -35,6 +35,7 @@ function createStore() {
                 pauseTask: doNothing,
             }
             update(dataMap => {
+                dataMap.delete(key);
                 dataMap.set(key, newItem);
                 return dataMap;
             })
@@ -54,6 +55,7 @@ function createStore() {
                 pauseTask: doNothing,
             }
             update(dataMap => {
+                dataMap.delete(key);
                 dataMap.set(key, newItem);
                 return dataMap;
             })
@@ -64,7 +66,7 @@ function createStore() {
          * @param text {string} The explanatory text to display right before the pause
          * @param prePauseTask {()=>void} A function to run right before letting the user explore. This should set whatever condition your're waiting for to be false, so you can advance once the user makes it true.
          */
-        addPause: (key:number, text: string, prePauseTask:()=>void) => {
+        addPause: (key:number, prePauseTask:()=>void, text: string) => {
             const newItem: TutorialItem = {
                 description: text,
                 component: undefined,
@@ -73,6 +75,7 @@ function createStore() {
                 pauseTask: prePauseTask,
             }
             update(dataMap => {
+                dataMap.delete(key);
                 dataMap.set(key, newItem);
                 return dataMap;
             })
@@ -92,6 +95,26 @@ function createStore() {
                 pauseTask: doNothing,
             }
             update(dataMap => {
+                dataMap.delete(key);
+                dataMap.set(key, newItem);
+                return dataMap;
+            })
+        },
+        /**
+         * Add an item to the Tutorial that does not focus on a specific item. This could be an introductory message, for instance.
+         * @param key {number} A positive, non-zero integer that uniquely identifies the item in the order it should appear. Should be consecutive.
+         * @param text {string} The explanatory text to display
+         */
+        addTextOnly: (key: number, text:string) => {
+            const newItem: TutorialItem = {
+                description: text,
+                component: undefined,
+                clickToAdvance: false,
+                pause: false,
+                pauseTask: doNothing,
+            }
+            update(dataMap => {
+                dataMap.delete(key);
                 dataMap.set(key, newItem);
                 return dataMap;
             })
