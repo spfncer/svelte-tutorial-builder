@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { TutorialStore } from '../lib/TutorialStore.ts';
+	import { TutorialStore } from '../lib/TutorialStore';
 	import Tutorial from '$lib/Tutorial.svelte';
 	import TestComp from './TestComp.svelte';
-	import { UnpauseTutorial } from '$lib';
-
+	import { Paused } from '$lib';
+	
 	let elem1: HTMLElement;
 	let elem2: HTMLElement;
 	let elem3: HTMLElement;
@@ -13,27 +13,38 @@
 
 	let bound: number = 0;
 
-	let tutorialComponent: Tutorial;
+	let showTutorial = false;
 
-	onMount(() => {
-		TutorialStore.addNonClickable(1, elem1, 'This is a box');
-		TutorialStore.addNonClickable(2, elem2, 'This is a box 2');
-		TutorialStore.addClickable(4, elem3, 'This is a box 3');
-		TutorialStore.addPause(3, "To continue the tutorial, increase the counter value to 5!", prePause);
-	});
-
-	$:{
-		if(bound > 4)
-			UnpauseTutorial();
+	function onCompletion() {
+		showTutorial = false;
 	}
 
-	function prePause(){
+	onMount(() => {
+		TutorialStore.addTextOnly(1, "Welcome to the tutorial. Use the buttons below to navigate, unless prompted otherwise.")
+		TutorialStore.addNonClickable(2, elem1, 'This is a box');
+		TutorialStore.addNonClickable(3, elem2, 'This is a box 2');
+		TutorialStore.addClickable(5, elem3, 'This is a box 3');
+		TutorialStore.addPause(
+			4,
+			'To continue the tutorial, increase the counter value to 5!',
+			prePause
+		);
+		TutorialStore.addTextOnly(7, "You've completed the tutorial! Click Next to close.")
+	});
+
+	$: if ($Paused) {
+		if (bound > 4) Paused.unpause();
+	}
+
+	function prePause() {
 		bound = 0;
 	}
 
 </script>
 
-<Tutorial autoStart={false} bind:this={tutorialComponent}></Tutorial>
+{#if showTutorial}
+	<Tutorial {onCompletion}></Tutorial>
+{/if}
 <h1 bind:this={elem1}>Welcome to your library project</h1>
 <p bind:this={elem2}>
 	Create your package using @sveltejs/package and preview/showcase your work with SvelteKit
@@ -52,9 +63,9 @@
 	<TestComp></TestComp>
 {/if}
 
-<input type="number" bind:value={bound}>
+<input type="number" bind:value={bound} />
 
-<button on:click={() => tutorialComponent.startTutorial()}>Start tutorial</button>
+<button on:click={() => (showTutorial = true)}>{showTutorial ? "Tutorial in Progress" : "Start Tutorial"}</button>
 
 <style>
 	h1,

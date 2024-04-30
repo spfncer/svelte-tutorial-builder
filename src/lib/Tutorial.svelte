@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ComputeLocation from './ComputeLocation';
-	import { Paused } from './Paused.ts';
+	import { Paused } from './Paused';
 	import { TutorialStore, type TutorialItem } from './TutorialStore';
 	import { onMount, tick } from 'svelte';
 
@@ -10,6 +10,7 @@
 	export let buttonClasses: string = '';
 	export let boxClasses: string = '';
 	export let clickableMessage: string = 'Click it to continue.';
+	export let onCompletion: ()=>void = () => {return};
 
 	let current = 0;
 	let suspended = 0;
@@ -29,6 +30,7 @@
 		}
 	}
 
+	//handle unpausing once Paused store becomes false
 	$: if (!$Paused && suspended > 0) {
 		current = suspended + 1;
 		suspended = 0;
@@ -55,7 +57,14 @@
 
 		//check if the browser is available
 		browser = typeof window !== 'undefined';
+
+		if (browser) window.addEventListener('resize', moveBox);
+
 		//end onMount
+		//return onUnmount
+		return () => {
+			window.removeEventListener('resize', moveBox);
+		}
 	});
 
 	export function startTutorial() {
@@ -64,13 +73,14 @@
 
 	async function showNext() {
 		removeItemFocus();
-		if (current == 0 || item?.component) {
+		if (current == 0 || !item?.pause) {
 			//the current thing open is an HTML element, just advance
 			current++;
 			await tick(); //wait for the DOM to update in case the next item is not yet mounted
 			item = $TutorialStore.get(current);
 			if (!item) {
-				current = 0;
+				//end of tutorial
+				exitTutorial();
 				return;
 			}
 			if (item.component) {
@@ -86,7 +96,7 @@
 					);
 				}
 			} else {
-				//new item is a pause explanation
+				//new item is a pause explanation or a text only
 				moveBoxCenter();
 			}
 		} else if (item?.pause) {
@@ -94,8 +104,8 @@
 			suspended = current;
 			current = 0;
 			//setup monitoring for when condition is true
-			Paused.pause();
 			item?.pauseTask();
+			Paused.pause();
 		}
 	}
 
@@ -104,21 +114,23 @@
 		current--;
 		await tick(); //wait for the DOM to update in case the next item is not yet mounted
 		item = $TutorialStore.get(current);
-		while (!item || !item?.component) {
+		while (!item || item?.pause) {
 			current--;
 			item = $TutorialStore.get(current);
 			if (current < 1) {
-				current = 0;
+				exitTutorial();
 				return;
 			}
 		}
-		addItemFocus(item.component);
-		if (item.clickToAdvance) {
-			item.component.addEventListener(
-				'click',
-				showNext,
-				{ once: true }
-			);
+		if (item.component) {
+			addItemFocus(item.component);
+			moveBox();
+			if (item.clickToAdvance) {
+				item.component.addEventListener('click', showNext, { once: true });
+			}
+		}
+		else {
+			moveBoxCenter();
 		}
 	}
 
@@ -141,13 +153,15 @@
 	}
 
 	function moveBox() {
-		if (item && typeof item.component == 'object') {
+		if (item && item.component) {
 			let positions = ComputeLocation(item.component, explanation);
 			explanation.style.left = positions.x + 'px';
 			explanation.style.top = positions.y + 'px';
 		}
+		else if (item) {
+			moveBoxCenter();
+		}
 	}
-	if (browser) window.addEventListener('resize', moveBox);
 
 	function handleBackDropClick() {
 		if (showCurtain && !aboutToClose) {
@@ -165,6 +179,13 @@
 		aboutToClose = false;
 		moveBox();
 	}
+
+	function exitTutorial(){
+		aboutToClose = false;
+		current = 0;
+		onCompletion();
+	}
+
 </script>
 
 {#if showCurtain}
@@ -180,6 +201,7 @@
 <!-- Below is the floating explanations box! -->
 <div
 	class={(showCurtain ? 'explanation show ' : 'explanation ') + boxClasses}
+	style={'z-index:' + curtainZIndex}
 	bind:this={explanation}
 >
 	{#if !aboutToClose}
@@ -190,10 +212,7 @@
 			{#if item?.clickToAdvance}
 				<p class="click2">{clickableMessage}</p>
 			{:else}
-				<button
-					class={'control ' + buttonClasses}
-					on:click={showNext}>Next</button
-				>
+				<button class={'control ' + buttonClasses} on:click={showNext}>Next</button>
 			{/if}
 		</div>
 	{:else}
@@ -203,10 +222,7 @@
 			<button class={'control ' + buttonClasses} on:click={handleCancelClose}>No</button>
 			<button
 				class={'control ' + buttonClasses}
-				on:click={() => {
-					aboutToClose = false;
-					current = 0;
-				}}>Yes</button
+				on:click={exitTutorial}>Yes</button
 			>
 		</div>
 	{/if}
