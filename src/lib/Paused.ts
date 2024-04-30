@@ -5,7 +5,13 @@ function createPausing(){
 
     return{
         subscribe,
+        /**
+         * Pauses the Tutorial. Don't call it directly, use TutorialStore.addPause() or TutorialStore.addPauseWithoutSetup()
+         */
         pause: () => {set(true)},
+        /**
+         * Call this once the user has completed some action independently, to continue the guided tutorial.
+         */
         unpause: () => {set(false)}
     }
 }
