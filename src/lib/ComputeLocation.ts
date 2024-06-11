@@ -31,7 +31,7 @@ export default function ComputeLocation(item: HTMLElement, box: HTMLDivElement) 
     else if (
         itemOffsetRight + boxWidth + 50 < windowWidth //does not exceed right edge
         &&
-        itemVertCenter + box.offsetHeight < windowHeight //not exceed bottom edge
+        itemVertCenter + (box.offsetHeight / 2) < windowHeight //not exceed bottom edge
         &&
         itemVertCenter - (box.offsetHeight / 2) > 0 //does not exceed top edge
     ) {
@@ -43,7 +43,7 @@ export default function ComputeLocation(item: HTMLElement, box: HTMLDivElement) 
     else if (
         item.offsetLeft - boxWidth - 50 > 0 //does not exceed left edge
         &&
-        itemVertCenter + box.offsetHeight < windowHeight //does not exceed bottom edge
+        itemVertCenter + (box.offsetHeight / 2) < windowHeight //does not exceed bottom edge
         &&
         itemVertCenter - (box.offsetHeight / 2) > 0 //does not exceed top edge
     ) {
