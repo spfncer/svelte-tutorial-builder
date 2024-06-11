@@ -3,6 +3,9 @@
 A library for Svelte to simplify creating a simple linear in-app tutorial for new users.
 
 ## Loading HTML Elements into TutorialStore
+```javascript
+import { TutorialStore } from "svelte-tutorial-builder";
+```
 To create a Tutorial, you first need to load HTML Elements into the **TutorialStore**. This allows the Tutorial Component to access it later.
 
 When loading elements into TutorialStore, they can be inserted as one of two types. A clickable element is something the user clicks on to advance the tutorial. This might be a button, for instance, which opens another part of the app you want to highlight next. Alternatively, non-clickable elements will present users with a "Next" button to advance the tutorial.
@@ -18,6 +21,9 @@ To insert items into TutorialStore:
 5. Import and add the Tutorial component to the top-level component for the app/page you want to show tutorials on.
 
 ## Using the Tutorial Component
+```javascript
+import { Tutorial } from "svelte-tutorial-builder";
+```
 * By default, the Tutorial Component will immediately start from item #1 in the TutorialStore when it mounts. You can pass the **autoStart** prop to change this behavior.
 * By using **bind:this** on the tutorial component, you can call **startTutorial()** on the Tutorial component at some arbitrary time, such as when the user clicks a button.
 * You can pass the **show** prop to the component to manually highlight the Element with that ID
