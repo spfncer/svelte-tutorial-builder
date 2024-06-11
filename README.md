@@ -57,7 +57,7 @@ npm run dev
 
 Everything inside `src/lib` is part of the library, everything inside `src/routes` can be used as a showcase or preview app.
 
-Suggested changes to this repo should be suggested as Pull Requests on GitHub. I look forward to seeing your contributions!
+Suggested changes to this repo should be suggested as Pull Requests on [GitHub](https://github.com/spfncer/svelte-tutorial-builder). I look forward to seeing your contributions!
 
 ## Building
 
