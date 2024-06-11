@@ -35,7 +35,6 @@
 
 		//check if the browser is available
 		browser = typeof window !== 'undefined';
-		console.log('browser', browser);
 		//end onMount
 	});
 
