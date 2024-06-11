@@ -83,6 +83,11 @@
 		if (positionValue != 'absolute' && positionValue != 'fixed') {
 			item.style.position = 'relative';
 		}
+		if (computedStyle.background === 'none') {
+			//if this item doesn't have a background, need to add one so it doesn't appear to be "behind" the curtain
+			item.setAttribute('data-tutorial-background', '1');
+			item.style.background = '#ffffff';
+		}
 		explanation.style.zIndex = (curtainZIndex + 2).toString();
 		moveBox();
 	}
@@ -90,6 +95,11 @@
 	function removeItemFocus() {
 		item?.component.style.removeProperty('z-index');
 		item?.component.style.removeProperty('position');
+		if (item && item.component.getAttribute('data-tutorial-background') == '1') {
+			//if we added a background, remove it
+			item.component.style.background = '';
+			item.component.removeAttribute('data-tutorial-background');
+		}
 	}
 
 	function moveBox() {
