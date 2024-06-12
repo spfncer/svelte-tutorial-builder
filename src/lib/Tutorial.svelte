@@ -151,9 +151,9 @@
 	}
 
 	function removeItemFocus() {
-		item?.component.style.removeProperty('z-index');
-		item?.component.style.removeProperty('position');
-		if (item && item.component.getAttribute('data-tutorial-background') == '1') {
+		item?.component?.style.removeProperty('z-index');
+		item?.component?.style.removeProperty('position');
+		if (item && item.component?.getAttribute('data-tutorial-background') == '1') {
 			//if we added a background, remove it
 			item.component.style.background = '';
 			item.component.removeAttribute('data-tutorial-background');
