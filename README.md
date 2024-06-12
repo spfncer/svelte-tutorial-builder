@@ -3,6 +3,9 @@
 A library for Svelte to simplify creating a linear in-app tutorial for new users.
 
 ## Loading HTML Elements into TutorialStore
+```javascript
+import { TutorialStore } from "svelte-tutorial-builder";
+```
 To create a Tutorial, you first need to load HTML Elements into the **TutorialStore**. This allows the Tutorial Component to access it later.
 
 When loading elements into TutorialStore, they can be inserted as one of five types.
@@ -24,7 +27,12 @@ To insert items into TutorialStore:
 5. Import and add the Tutorial component to the top-level component for the app/page you want to show tutorials on.
 
 ## Using the Tutorial Component
-* By default, the Tutorial Component will immediately start from item #1 in the TutorialStore when it mounts. This is the ideal usage; use a local variable to track when to mount the component, and unmount the tutorial when finished.
+```javascript
+import { Tutorial } from "svelte-tutorial-builder";
+```
+* By default, the Tutorial Component will immediately start from item #1 in the TutorialStore when it mounts. You can pass the **autoStart** prop to change this behavior.
+* By using **bind:this** on the tutorial component, you can call **startTutorial()** on the Tutorial component at some arbitrary time, such as when the user clicks a button.
+* You can pass the **show** prop to the component to manually highlight the Element with that ID
 
 ### Props
 * `onCompletion`: Optional, but recommended. Pass a function to execute when the user exits the Tutorial. Should trigger the Tutorial Component to unmount.
@@ -68,7 +76,7 @@ npm run dev
 
 Everything inside `src/lib` is part of the library, everything inside `src/routes` can be used as a showcase or preview app.
 
-Suggested changes to this repo should be suggested as Pull Requests on GitHub. I look forward to seeing your contributions!
+Suggested changes to this repo should be suggested as Pull Requests on [GitHub](https://github.com/spfncer/svelte-tutorial-builder). I look forward to seeing your contributions!
 
 ## Building
 
