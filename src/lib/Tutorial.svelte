@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ComputeLocation from './ComputeLocation';
+	import { Paused } from './Paused';
 	import { TutorialStore, type TutorialItem } from './TutorialStore';
 	import { onMount, tick } from 'svelte';
 
@@ -9,8 +10,10 @@
 	export let buttonClasses: string = '';
 	export let boxClasses: string = '';
 	export let clickableMessage: string = 'Click it to continue.';
+	export let onCompletion: ()=>void = () => {return};
 
 	let current = 0;
+	let suspended = 0;
 	let explanation: HTMLDivElement;
 	let aboutToClose = false;
 	let browser = false;
@@ -22,8 +25,27 @@
 	$: if (show > 0) {
 		//logic for manually showing an item
 		item = $TutorialStore.get(show);
-		if (item) {
+		if (item?.component) {
 			addItemFocus(item.component);
+		}
+	}
+
+	//handle unpausing once Paused store becomes false
+	$: if (!$Paused && suspended > 0) {
+		current = suspended + 1;
+		suspended = 0;
+		item = $TutorialStore.get(current);
+		if (item && item.component) {
+			addItemFocus(item.component);
+			if (item.clickToAdvance) {
+				item.component.addEventListener(
+					'click',
+					() => {
+						showNext();
+					},
+					{ once: true }
+				);
+			}
 		}
 	}
 
@@ -35,7 +57,14 @@
 
 		//check if the browser is available
 		browser = typeof window !== 'undefined';
+
+		if (browser) window.addEventListener('resize', moveBox);
+
 		//end onMount
+		//return onUnmount
+		return () => {
+			window.removeEventListener('resize', moveBox);
+		}
 	});
 
 	export function startTutorial() {
@@ -44,16 +73,39 @@
 
 	async function showNext() {
 		removeItemFocus();
-		current++;
-		await tick(); //wait for the DOM to update in case the next item is not yet mounted
-		item = $TutorialStore.get(current);
-		if (!item) {
+		if (current == 0 || !item?.pause) {
+			//the current thing open is an HTML element, just advance
+			current++;
+			await tick(); //wait for the DOM to update in case the next item is not yet mounted
+			item = $TutorialStore.get(current);
+			if (!item) {
+				//end of tutorial
+				exitTutorial();
+				return;
+			}
+			if (item.component) {
+				//new item is another HTML element
+				addItemFocus(item.component);
+				if (item.clickToAdvance) {
+					item.component.addEventListener(
+						'click',
+						() => {
+							showNext();
+						},
+						{ once: true }
+					);
+				}
+			} else {
+				//new item is a pause explanation or a text only
+				moveBoxCenter();
+			}
+		} else if (item?.pause) {
+			//the current thing open is an explanation for a pause, so now pause
+			suspended = current;
 			current = 0;
-			return;
-		}
-		addItemFocus(item.component);
-		if (item.clickToAdvance) {
-			item.component.addEventListener('click', showNext, { once: true });
+			//setup monitoring for when condition is true
+			item?.pauseTask();
+			Paused.pause();
 		}
 	}
 
@@ -62,16 +114,23 @@
 		current--;
 		await tick(); //wait for the DOM to update in case the next item is not yet mounted
 		item = $TutorialStore.get(current);
-		while (!item) {
+		while (!item || item?.pause) {
 			current--;
+			item = $TutorialStore.get(current);
 			if (current < 1) {
-				current = 0;
+				exitTutorial();
 				return;
 			}
 		}
-		addItemFocus(item.component);
-		if (item.clickToAdvance) {
-			item.component.addEventListener('click', showNext, { once: true });
+		if (item.component) {
+			addItemFocus(item.component);
+			moveBox();
+			if (item.clickToAdvance) {
+				item.component.addEventListener('click', showNext, { once: true });
+			}
+		}
+		else {
+			moveBoxCenter();
 		}
 	}
 
@@ -92,9 +151,9 @@
 	}
 
 	function removeItemFocus() {
-		item?.component.style.removeProperty('z-index');
-		item?.component.style.removeProperty('position');
-		if (item && item.component.getAttribute('data-tutorial-background') == '1') {
+		item?.component?.style.removeProperty('z-index');
+		item?.component?.style.removeProperty('position');
+		if (item && item.component?.getAttribute('data-tutorial-background') == '1') {
 			//if we added a background, remove it
 			item.component.style.background = '';
 			item.component.removeAttribute('data-tutorial-background');
@@ -102,25 +161,39 @@
 	}
 
 	function moveBox() {
-		if (item) {
+		if (item && item.component) {
 			let positions = ComputeLocation(item.component, explanation);
 			explanation.style.left = positions.x + 'px';
 			explanation.style.top = positions.y + 'px';
 		}
+		else if (item) {
+			moveBoxCenter();
+		}
 	}
-	if (browser) window.addEventListener('resize', moveBox);
 
 	function handleBackDropClick() {
 		if (showCurtain && !aboutToClose) {
 			aboutToClose = true;
-			explanation.style.top = window.innerHeight / 2 - explanation.offsetHeight / 2 + 'px';
-			explanation.style.left = window.innerWidth / 2 - explanation.offsetWidth / 2 + 'px';
+			moveBoxCenter();
 		}
 	}
+
+	function moveBoxCenter() {
+		explanation.style.top = window.innerHeight / 2 - explanation.offsetHeight / 2 + 'px';
+		explanation.style.left = window.innerWidth / 2 - explanation.offsetWidth / 2 + 'px';
+	}
+
 	function handleCancelClose() {
 		aboutToClose = false;
 		moveBox();
 	}
+
+	function exitTutorial(){
+		aboutToClose = false;
+		current = 0;
+		onCompletion();
+	}
+
 </script>
 
 {#if showCurtain}
@@ -136,6 +209,7 @@
 <!-- Below is the floating explanations box! -->
 <div
 	class={(showCurtain ? 'explanation show ' : 'explanation ') + boxClasses}
+	style={'z-index:' + curtainZIndex}
 	bind:this={explanation}
 >
 	{#if !aboutToClose}
@@ -156,10 +230,7 @@
 			<button class={'control ' + buttonClasses} on:click={handleCancelClose}>No</button>
 			<button
 				class={'control ' + buttonClasses}
-				on:click={() => {
-					aboutToClose = false;
-					current = 0;
-				}}>Yes</button
+				on:click={exitTutorial}>Yes</button
 			>
 		</div>
 	{/if}
