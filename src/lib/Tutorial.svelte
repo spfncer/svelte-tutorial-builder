@@ -10,13 +10,16 @@
 	export let buttonClasses: string = '';
 	export let boxClasses: string = '';
 	export let clickableMessage: string = 'Click it to continue.';
-	export let onCompletion: ()=>void = () => {return};
+	export let onCompletion: () => void = () => {
+		return;
+	};
 
 	let current = 0;
 	let suspended = 0;
 	let explanation: HTMLDivElement;
 	let aboutToClose = false;
 	let browser = false;
+	let cover: HTMLElement | undefined = undefined;
 
 	let item: TutorialItem | undefined;
 
@@ -26,7 +29,7 @@
 		//logic for manually showing an item
 		item = $TutorialStore.get(show);
 		if (item?.component) {
-			addItemFocus(item.component);
+			addItemFocus(item.component, item.parent);
 		}
 	}
 
@@ -36,7 +39,7 @@
 		suspended = 0;
 		item = $TutorialStore.get(current);
 		if (item && item.component) {
-			addItemFocus(item.component);
+			addItemFocus(item.component, item.parent);
 			if (item.clickToAdvance) {
 				item.component.addEventListener(
 					'click',
@@ -64,7 +67,7 @@
 		//return onUnmount
 		return () => {
 			window.removeEventListener('resize', moveBox);
-		}
+		};
 	});
 
 	export function startTutorial() {
@@ -74,7 +77,7 @@
 	async function showNext() {
 		removeItemFocus();
 		if (current == 0 || !item?.pause) {
-			//the current thing open is an HTML element, just advance
+			//the last thing open is an HTML element, just advance
 			current++;
 			await tick(); //wait for the DOM to update in case the next item is not yet mounted
 			item = $TutorialStore.get(current);
@@ -85,7 +88,7 @@
 			}
 			if (item.component) {
 				//new item is another HTML element
-				addItemFocus(item.component);
+				addItemFocus(item.component, item.parent);
 				if (item.clickToAdvance) {
 					item.component.addEventListener(
 						'click',
@@ -123,18 +126,17 @@
 			}
 		}
 		if (item.component) {
-			addItemFocus(item.component);
+			addItemFocus(item.component, item.parent);
 			moveBox();
 			if (item.clickToAdvance) {
 				item.component.addEventListener('click', showNext, { once: true });
 			}
-		}
-		else {
+		} else {
 			moveBoxCenter();
 		}
 	}
 
-	function addItemFocus(item: HTMLElement) {
+	function addItemFocus(item: HTMLElement, parent: HTMLElement | undefined = undefined) {
 		const computedStyle = getComputedStyle(item);
 		item.style.zIndex = (curtainZIndex + 1).toString();
 		let positionValue = computedStyle.getPropertyValue('position');
@@ -146,7 +148,21 @@
 			item.setAttribute('data-tutorial-background', '1');
 			item.style.background = '#ffffff';
 		}
-		explanation.style.zIndex = (curtainZIndex + 2).toString();
+		explanation.style.zIndex = (curtainZIndex + 3).toString();
+		console.log("parent", parent);
+		if (parent) { //place a curtain over the parent element, if specified
+			const parentComputedStyle = getComputedStyle(parent);
+			let positionValue = parentComputedStyle.getPropertyValue('position');
+			if (positionValue != 'absolute' && positionValue != 'fixed') {
+				parent.style.position = 'relative';
+			}
+			parent.style.zIndex = (curtainZIndex + 1).toString();;
+			cover = document.createElement('div');
+			cover.setAttribute('class', 'svelte-tutorial-builder-parent-cover');
+			cover.setAttribute('style', 'z-index:' + curtainZIndex);
+			parent.appendChild(cover);
+			parent.setAttribute('data-tutorial-background', '2');
+		}
 		moveBox();
 	}
 
@@ -155,9 +171,18 @@
 		item?.component?.style.removeProperty('position');
 		if (item && item.component?.getAttribute('data-tutorial-background') == '1') {
 			//if we added a background, remove it
-			item.component.style.background = '';
+			item.component.style.removeProperty('background');
 			item.component.removeAttribute('data-tutorial-background');
 		}
+		if (cover){ //remove curtain element placed over parent element
+			if(cover.parentElement && cover.parentElement.getAttribute('data-tutorial-background') == '2') {
+				cover.parentElement.style.removeProperty("position");
+				cover.parentElement.removeAttribute('data-tutorial-background');
+				cover.parentElement.style.removeProperty("z-index");
+			}
+			cover.remove();
+			cover = undefined;
+		}	
 	}
 
 	function moveBox() {
@@ -165,8 +190,7 @@
 			let positions = ComputeLocation(item.component, explanation);
 			explanation.style.left = positions.x + 'px';
 			explanation.style.top = positions.y + 'px';
-		}
-		else if (item) {
+		} else if (item) {
 			moveBoxCenter();
 		}
 	}
@@ -179,8 +203,8 @@
 	}
 
 	function moveBoxCenter() {
-		explanation.style.top = window.innerHeight / 2 - explanation.offsetHeight / 2 + 'px';
-		explanation.style.left = window.innerWidth / 2 - explanation.offsetWidth / 2 + 'px';
+		explanation.style.top = ((window.innerHeight / 2) - (explanation.offsetHeight / 2)).toString() + 'px';
+		explanation.style.left = ((window.innerWidth / 2) - (explanation.offsetWidth / 2)).toString() + 'px';
 	}
 
 	function handleCancelClose() {
@@ -188,12 +212,12 @@
 		moveBox();
 	}
 
-	function exitTutorial(){
+	function exitTutorial() {
+		removeItemFocus();
 		aboutToClose = false;
 		current = 0;
 		onCompletion();
 	}
-
 </script>
 
 {#if showCurtain}
@@ -209,7 +233,7 @@
 <!-- Below is the floating explanations box! -->
 <div
 	class={(showCurtain ? 'explanation show ' : 'explanation ') + boxClasses}
-	style={'z-index:' + curtainZIndex}
+	style={'z-index:' + (curtainZIndex + 3)}
 	bind:this={explanation}
 >
 	{#if !aboutToClose}
@@ -228,10 +252,7 @@
 		Do you want to exit the tutorial?
 		<div class="controls">
 			<button class={'control ' + buttonClasses} on:click={handleCancelClose}>No</button>
-			<button
-				class={'control ' + buttonClasses}
-				on:click={exitTutorial}>Yes</button
-			>
+			<button class={'control ' + buttonClasses} on:click={exitTutorial}>Yes</button>
 		</div>
 	{/if}
 </div>
@@ -295,5 +316,15 @@
 		margin: 0;
 		padding: 5px 0 0 0;
 		font-size: 0.8em;
+	}
+
+	:global(.svelte-tutorial-builder-parent-cover){
+		display: block;
+		position: absolute;
+		background: #00000077;
+		width: 100%;
+		height: 100%;
+		top: 0;
+		left: 0;
 	}
 </style>

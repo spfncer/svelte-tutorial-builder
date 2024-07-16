@@ -8,11 +8,14 @@ export default function ComputeLocation(item: HTMLElement, box: HTMLDivElement) 
     const boxWidth = box.offsetWidth;
     const boxHeight = box.offsetHeight;
 
-    const itemHoriCenter = item.offsetLeft + (item.offsetWidth / 2);
-    const itemVertCenter = item.offsetTop + (item.offsetHeight / 2);
+    const itemLeft = item.getBoundingClientRect().left + document.documentElement.scrollLeft;
+    const itemTop = item.getBoundingClientRect().top + document.documentElement.scrollTop;
 
-    const itemOffsetBottom = item.offsetTop + item.offsetHeight;
-    const itemOffsetRight = item.offsetLeft + item.offsetWidth;
+    const itemHoriCenter = itemLeft + (item.offsetWidth / 2);
+    const itemVertCenter = itemTop + (item.offsetHeight / 2);
+
+    const itemOffsetBottom = itemTop + item.offsetHeight;
+    const itemOffsetRight = itemLeft + item.offsetWidth;
 
     //test 1: place box underneath item
 
@@ -41,20 +44,20 @@ export default function ComputeLocation(item: HTMLElement, box: HTMLDivElement) 
 
     //test 3: place box to left of item
     else if (
-        item.offsetLeft - boxWidth - 50 > 0 //does not exceed left edge
+        itemLeft - boxWidth - 50 > 0 //does not exceed left edge
         &&
         itemVertCenter + (box.offsetHeight / 2) < windowHeight //does not exceed bottom edge
         &&
         itemVertCenter - (box.offsetHeight / 2) > 0 //does not exceed top edge
     ) {
-        x = item.offsetLeft - boxWidth - 30;
+        x = itemLeft - boxWidth - 30;
         y = itemVertCenter - (boxHeight / 2);
     }
 
     //fallback: place box above item
     else {
         x = itemHoriCenter - (boxWidth / 2);
-        y = item.offsetTop - 30;
+        y = itemTop - 30;
     }
 
     return {

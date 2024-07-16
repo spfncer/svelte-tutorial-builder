@@ -7,6 +7,7 @@ export type TutorialItem = {
     clickToAdvance: boolean;
     pause: boolean;
     pauseTask: (()=>void);
+    parent: HTMLElement | undefined;
 }
 
 function doNothing(){
@@ -26,13 +27,14 @@ function createStore() {
          * @param item {HTMLElement} The element to highlight
          * @param text {string} The explanatory text to display in the tutorial
          */
-        addClickable: (key: number, item: HTMLElement, text: string) => {
+        addClickable: (key: number, item: HTMLElement, text: string, parent: HTMLElement | undefined = undefined) => {
             const newItem: TutorialItem = {
                 description: text,
                 component: item,
                 clickToAdvance: true,
                 pause: false,
                 pauseTask: doNothing,
+                parent: parent
             }
             update(dataMap => {
                 dataMap.delete(key);
@@ -46,13 +48,14 @@ function createStore() {
          * @param item {HTMLElement} The element to highlight
          * @param text {string} The explanatory text to display in the tutorial
          */
-        addNonClickable: (key: number, item: HTMLElement, text: string) => {
+        addNonClickable: (key: number, item: HTMLElement, text: string, parent: HTMLElement | undefined = undefined) => {
             const newItem: TutorialItem = {
                 description: text,
                 component: item,
                 clickToAdvance: false,
                 pause: false,
                 pauseTask: doNothing,
+                parent: parent
             }
             update(dataMap => {
                 dataMap.delete(key);
@@ -73,6 +76,7 @@ function createStore() {
                 clickToAdvance: false,
                 pause: true,
                 pauseTask: prePauseTask,
+                parent: undefined
             }
             update(dataMap => {
                 dataMap.delete(key);
@@ -93,6 +97,7 @@ function createStore() {
                 clickToAdvance: false,
                 pause: true,
                 pauseTask: doNothing,
+                parent: undefined
             }
             update(dataMap => {
                 dataMap.delete(key);
@@ -112,6 +117,7 @@ function createStore() {
                 clickToAdvance: false,
                 pause: false,
                 pauseTask: doNothing,
+                parent: undefined
             }
             update(dataMap => {
                 dataMap.delete(key);

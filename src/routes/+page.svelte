@@ -4,6 +4,7 @@
 	import Tutorial from '$lib/Tutorial.svelte';
 	import TestComp from './TestComp.svelte';
 	import { Paused } from '$lib';
+	import Card from './Card.svelte';
 	
 	let elem1: HTMLElement;
 	let elem2: HTMLElement;
@@ -26,10 +27,10 @@
 		TutorialStore.addClickable(5, elem3, 'This is a box 3');
 		TutorialStore.addPause(
 			4,
+			prePause,
 			'To continue the tutorial, increase the counter value to 5!',
-			prePause
 		);
-		TutorialStore.addTextOnly(7, "You've completed the tutorial! Click Next to close.")
+		TutorialStore.addTextOnly(8, "You've completed the tutorial! Click Next to close.")
 	});
 
 	$: if ($Paused) {
@@ -66,6 +67,8 @@
 <input type="number" bind:value={bound} />
 
 <button on:click={() => (showTutorial = true)}>{showTutorial ? "Tutorial in Progress" : "Start Tutorial"}</button>
+
+<Card></Card>
 
 <style>
 	h1,
